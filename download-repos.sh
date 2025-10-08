@@ -14,12 +14,6 @@ script_name=$(basename "$0")
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 clone_location="${1:-$(pwd)}"
 
-# GitLab configuration
-gitlab_group_id="${GITLAB_GROUP_ID}"
-gitlab_api_url="${GITLAB_BASE_URL}"
-gitlab_base_url="${GITLAB_BASE_GIT_URL}"
-encoded_group_id=$(echo "$gitlab_group_id" | sed 's|/|%2F|g')
-
 # Initialize arrays
 declare -a repo_array=()
 declare -a exclude_list=()
@@ -81,8 +75,9 @@ check_env_vars
 
 # Fetch repositories
 echo -e "${BLUE}Fetching repository list from GitLab...${NC}"
+encoded_group_id=$(echo "$GITLAB_GROUP_ID" | sed 's|/|%2F|g')
 repos=$(curl -s --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-    "${gitlab_api_url}/groups/${encoded_group_id}/projects?per_page=100" \
+    "${GITLAB_BASE_URL}/groups/${encoded_group_id}/projects?per_page=100" \
     | jq -r '.[].path_with_namespace')
 
 if [ -z "$repos" ]; then
@@ -101,18 +96,18 @@ echo -e "${GREEN}Found ${#repo_array[@]} repositories${NC}"
 for repo in "${repo_array[@]}"
 do
     if should_exclude "$repo"; then
-        echo -e "${YELLOW}Skipping excluded repository: ${repo#${gitlab_group_id}/}${NC}"
+        echo -e "${YELLOW}Skipping excluded repository: ${repo#${GITLAB_GROUP_ID}/}${NC}"
         continue
     fi
 
-    repo_path="${clone_location}/${repo#${gitlab_group_id}/}"
+    repo_path="${clone_location}/${repo#${GITLAB_GROUP_ID}/}"
 
     if [ -d "$repo_path" ]; then
-        echo -e "${YELLOW}Repository ${repo#${gitlab_group_id}/} already exists at $repo_path, skipping...${NC}"
+        echo -e "${YELLOW}Repository ${repo#${GITLAB_GROUP_ID}/} already exists at $repo_path, skipping...${NC}"
     else
-        echo -e "${GREEN}Cloning ${repo#${gitlab_group_id}/} into ${repo_path}...${NC}"
+        echo -e "${GREEN}Cloning ${repo#${GITLAB_GROUP_ID}/} into ${repo_path}...${NC}"
         mkdir -p "$(dirname "$repo_path")"
-        git clone "${gitlab_base_url}${repo}.git" "$repo_path" &
+        git clone "${GITLAB_BASE_URL}${repo}.git" "$repo_path" &
     fi
 done
 
