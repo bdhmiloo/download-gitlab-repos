@@ -44,8 +44,8 @@ Create a `.exclude-list` file in the same directory as the script to specify rep
 
 ```text
 # One repository per line
-wog/mom/miwa/mom-miwa/repo-to-skip
-wog/mom/miwa/mom-miwa/another-repo-to-skip
+your-grou-id/repo-to-skip
+your-grou-id/another-repo-to-skip
 ```
 
 Lines starting with `#` or empty lines are ignored.
